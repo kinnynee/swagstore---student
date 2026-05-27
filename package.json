@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "SwagStore – Node.js MVC ecommerce with JSON storage, auth, order history",
   "main": "app.js",
+  "engines": {
+    "node": ">=22.22.2 <25"
+  },
   "scripts": {
     "start": "node app.js",
     "test": "jest --runInBand --forceExit",

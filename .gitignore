@@ -3,7 +3,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 
 #  Environment & secrets 
 .env
@@ -18,6 +17,7 @@ data/*.bak
 #  Test & coverage output 
 coverage/
 .nyc_output/
+.npm-cache/
 
 #  Build & release 
 dist/
