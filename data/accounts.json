@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": 1779869649544,
+    "name": "ktran6738",
+    "email": "ktran6738@gmail.com",
+    "address": "",
+    "passwordHash": "$2a$10$KoSsxExrFRbE6.L8DerPauwa71JR4KK.ROulwG.z9nRW.BinM3fcm",
+    "role": "customer",
+    "createdAt": "2026-05-27T08:14:09.544Z"
+  }
+]
