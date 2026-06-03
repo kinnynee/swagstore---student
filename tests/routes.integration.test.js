@@ -6,38 +6,45 @@ const request  = require('supertest');
 const createApp = require('../app');
 const Account  = require('../models/Account');
 const Order    = require('../models/Order');
+const Product  = require('../models/Product');
 
 const accountsFile = path.join(__dirname, '..', 'data', 'accounts.json');
 const ordersFile   = path.join(__dirname, '..', 'data', 'orders.json');
+const productsFile = path.join(__dirname, '..', 'data', 'products.json');
 const accBackup    = accountsFile + '.bak';
 const ordBackup    = ordersFile   + '.bak';
+const prodBackup   = productsFile + '.bak';
 
 let app;
 
 beforeAll(() => {
   if (fs.existsSync(accountsFile)) fs.copyFileSync(accountsFile, accBackup);
   if (fs.existsSync(ordersFile))   fs.copyFileSync(ordersFile,   ordBackup);
+  if (fs.existsSync(productsFile)) fs.copyFileSync(productsFile, prodBackup);
   app = createApp();
 });
 
 afterAll(() => {
   if (fs.existsSync(accBackup)) { fs.copyFileSync(accBackup, accountsFile); fs.unlinkSync(accBackup); }
   if (fs.existsSync(ordBackup)) { fs.copyFileSync(ordBackup, ordersFile);   fs.unlinkSync(ordBackup); }
+  if (fs.existsSync(prodBackup)) { fs.copyFileSync(prodBackup, productsFile); fs.unlinkSync(prodBackup); }
 });
 
 beforeEach(() => {
   fs.writeFileSync(accountsFile, '[]');
   fs.writeFileSync(ordersFile, '[]');
+  if (fs.existsSync(prodBackup)) fs.copyFileSync(prodBackup, productsFile);
 });
 afterEach(() => {
   fs.writeFileSync(accountsFile, '[]');
   fs.writeFileSync(ordersFile, '[]');
+  if (fs.existsSync(prodBackup)) fs.copyFileSync(prodBackup, productsFile);
 });
 
 // ── Helper: login agent ───────────────────────────────────────
-async function loginAgent(email, password) {
+async function loginAgent(email, password, role = 'customer') {
   const agent = request.agent(app);
-  Account.add({ name: 'Test', email, password, address: '1 St' });
+  Account.add({ name: 'Test', email, password, address: '1 St', role });
   await agent.post('/login').send(`email=${email}&password=${password}`);
   return agent;
 }
@@ -193,6 +200,82 @@ describe('Protected routes (require login)', () => {
 });
 
 // ── Checkout + Order flow ─────────────────────────────────────
+describe('Staff routes', () => {
+  const PRODUCT_FORM = 'name=Staff+Mug&price=12.50&image=/images/bolt-shirt.svg&category=Accessories&type=Mug&badge=New&desc=Created+by+staff';
+
+  test('GET /staff/products redirects to login when not logged in', async () => {
+    const res = await request(app).get('/staff/products');
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toMatch(/login/);
+  });
+
+  test('customer account cannot access staff products', async () => {
+    const agent = await loginAgent('customer@x.com', 'pass');
+    const res = await agent.get('/staff/products');
+    expect(res.status).toBe(403);
+    expect(res.text).toMatch(/staff access/i);
+  });
+
+  test('staff can create, update, and delete products', async () => {
+    const agent = await loginAgent('staff@x.com', 'pass', 'staff');
+
+    const listRes = await agent.get('/staff/products');
+    expect(listRes.status).toBe(200);
+    expect(listRes.text).toMatch(/Staff Products/i);
+
+    const newFormRes = await agent.get('/staff/products/new');
+    expect(newFormRes.status).toBe(200);
+    expect(newFormRes.text).toMatch(/New Product/i);
+
+    const createRes = await agent.post('/staff/products').send(PRODUCT_FORM);
+    expect(createRes.status).toBe(302);
+    expect(createRes.headers.location).toBe('/staff/products');
+
+    const created = Product.getAll().find(p => p.name === 'Staff Mug');
+    expect(created).toBeDefined();
+
+    const updateRes = await agent
+      .post(`/staff/products/${created.id}`)
+      .send('name=Staff+Mug+Updated&price=14.25&image=/images/bolt-shirt.svg&category=Accessories&type=Mug&badge=Sale&desc=Updated+by+staff');
+    expect(updateRes.status).toBe(302);
+    expect(Product.getById(created.id).name).toBe('Staff Mug Updated');
+
+    const deleteRes = await agent.post(`/staff/products/${created.id}/delete`);
+    expect(deleteRes.status).toBe(302);
+    expect(Product.getById(created.id)).toBeUndefined();
+  });
+
+  test('staff can place an order for a customer', async () => {
+    const staff = await loginAgent('staff-order@x.com', 'pass', 'staff');
+    const customer = Account.add({
+      name: 'Buyer Customer',
+      email: 'buyer-customer@x.com',
+      password: 'pass',
+      address: 'Customer Address',
+    });
+
+    const formRes = await staff.get('/staff/orders/new');
+    expect(formRes.status).toBe(200);
+    expect(formRes.text).toMatch(/Order for Customer/i);
+
+    const res = await staff
+      .post('/staff/orders')
+      .send(`customerId=${customer.id}&productId=1&qty=2&name=Buyer+Customer&address=Customer+Address`);
+
+    expect(res.status).toBe(200);
+    expect(res.text).toMatch(/ORD-STAFF-/);
+
+    const orders = Order.getByUserId(customer.id);
+    expect(orders).toHaveLength(1);
+    expect(orders[0]).toMatchObject({
+      userId:              customer.id,
+      email:               'buyer-customer@x.com',
+      createdByStaffEmail: 'staff-order@x.com',
+    });
+    expect(orders[0].items[0].qty).toBe(2);
+  });
+});
+
 describe('Checkout & Order flow', () => {
   test('GET /checkout redirects to /cart when logged in but cart empty', async () => {
     const agent = await loginAgent('buyer@x.com', 'pass');

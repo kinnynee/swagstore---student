@@ -1,0 +1,32 @@
+<div class="page-container">
+  <div class="page-header order-header">
+    <div>
+      <a href="/" class="back-link">Back to Shop</a>
+      <h1 class="page-title">Staff Products</h1>
+      <p class="page-subtitle">Create, update, and remove products from the store catalog.</p>
+    </div>
+    <div class="page-metrics">
+      <a href="/staff/products/new" class="btn-primary">New Product</a>
+      <a href="/staff/orders/new" class="btn-ghost">Order for Customer</a>
+    </div>
+  </div>
+
+  <div class="staff-table">
+    {{#each products}}
+    <div class="staff-row">
+      <div>
+        <p class="card-category">{{category}} / {{type}}</p>
+        <h2 class="card-name">{{name}}</h2>
+        <p class="card-desc">{{desc}}</p>
+      </div>
+      <div class="staff-price">${{price}}</div>
+      <div class="staff-actions">
+        <a href="/staff/products/{{id}}/edit" class="btn-ghost">Edit</a>
+        <form method="POST" action="/staff/products/{{id}}/delete">
+          <button type="submit" class="btn-ghost">Delete</button>
+        </form>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+</div>

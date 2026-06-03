@@ -1,0 +1,55 @@
+<div class="page-container">
+  <div class="page-header">
+    <a href="/staff/products" class="back-link">Back to Staff Products</a>
+    <h1 class="page-title">{{title}}</h1>
+  </div>
+
+  <form method="POST" action="{{action}}" class="checkout-form">
+    {{#if error}}
+    <div class="alert alert-error">{{error}}</div>
+    {{/if}}
+
+    <section class="form-section">
+      <h2 class="form-section-title">Product Details</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input type="text" name="name" class="form-input" value="{{product.name}}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Price</label>
+          <input type="number" name="price" class="form-input" min="0" step="0.01" value="{{product.price}}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <input type="text" name="category" class="form-input" value="{{product.category}}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <input type="text" name="type" class="form-input" value="{{product.type}}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Image URL</label>
+          <input type="text" name="image" class="form-input" value="{{product.image}}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Badge</label>
+          <input type="text" name="badge" class="form-input" value="{{product.badge}}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea name="desc" class="form-input form-textarea" required>{{product.desc}}</textarea>
+      </div>
+    </section>
+
+    <button type="submit" class="btn-primary btn-large">Save Product</button>
+  </form>
+</div>

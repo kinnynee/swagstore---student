@@ -834,6 +834,44 @@ body {
 .order-line-qty { color: var(--muted); }
 .order-line-price { color: var(--text); font-weight: 500; }
 
+/* Staff */
+.staff-table {
+  display: grid;
+  gap: 14px;
+}
+.staff-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px 170px;
+  gap: 20px;
+  align-items: center;
+  padding: 20px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.staff-price {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+.staff-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.staff-actions form {
+  margin: 0;
+}
+@media (max-width: 780px) {
+  .staff-row {
+    grid-template-columns: 1fr;
+  }
+  .staff-actions {
+    justify-content: flex-start;
+  }
+}
+
 /* ── Footer ──────────────────────────────────── */
 footer {
   border-top: 1px solid var(--border);

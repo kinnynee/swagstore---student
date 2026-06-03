@@ -5,6 +5,7 @@ const path   = require('path');
 const bcrypt = require('bcryptjs');
 
 const dataFile = path.join(__dirname, '..', 'data', 'accounts.json');
+const ROLES = ['customer', 'staff'];
 
 function readAccounts() {
   try {
@@ -21,9 +22,26 @@ function writeAccounts(accounts) {
   fs.writeFileSync(dataFile, JSON.stringify(normalized, null, 2));
 }
 
+function normalizeRole(role) {
+  const normalized = String(role || 'customer').trim().toLowerCase();
+  return ROLES.includes(normalized) ? normalized : 'customer';
+}
+
 class Account {
+  static get roles() {
+    return ROLES.slice();
+  }
+
   static getAll() {
     return readAccounts();
+  }
+
+  static getCustomers() {
+    return Account.getAll().filter(a => normalizeRole(a.role) === 'customer');
+  }
+
+  static isStaff(account) {
+    return normalizeRole(account?.role) === 'staff';
   }
 
   static findByEmail(email) {
@@ -53,7 +71,7 @@ class Account {
     return Account.verifyPassword(password, user.passwordHash) ? user : null;
   }
 
-  static add({ name, email, password, address }) {
+  static add({ name, email, password, address, role }) {
     const normalizedEmail = String(email).trim().toLowerCase();
     if (!name || !normalizedEmail || !password || !address) {
       throw new Error('All fields are required.');
@@ -63,13 +81,17 @@ class Account {
     }
 
     const accounts  = Account.getAll();
+    const nextId = Math.max(
+      Date.now(),
+      accounts.reduce((max, a) => Math.max(max, Number(a.id) || 0), 0) + 1
+    );
     const newAccount = {
-      id:           Date.now(),
+      id:           nextId,
       name:         String(name).trim(),
       email:        normalizedEmail,
       address:      String(address).trim(),
       passwordHash: Account.hashPassword(password),
-      role:         'customer',
+      role:         normalizeRole(role),
       createdAt:    new Date().toISOString(),
     };
     accounts.push(newAccount);
@@ -81,7 +103,11 @@ class Account {
     const accounts = Account.getAll();
     const idx = accounts.findIndex(a => String(a.id) === String(id));
     if (idx === -1) throw new Error('Account not found.');
-    accounts[idx] = { ...accounts[idx], ...fields, updatedAt: new Date().toISOString() };
+    const nextFields = { ...fields };
+    if (Object.prototype.hasOwnProperty.call(nextFields, 'role')) {
+      nextFields.role = normalizeRole(nextFields.role);
+    }
+    accounts[idx] = { ...accounts[idx], ...nextFields, updatedAt: new Date().toISOString() };
     writeAccounts(accounts);
     return accounts[idx];
   }

@@ -86,6 +86,24 @@ describe('Account.add()', () => {
     Account.add({ ...SAMPLE, email: 'second@example.com' });
     expect(Account.getAll()).toHaveLength(2);
   });
+
+  test('creates staff account when role is staff', () => {
+    const acc = Account.add({ ...SAMPLE, email: 'staff@example.com', role: 'staff' });
+    expect(acc.role).toBe('staff');
+    expect(Account.isStaff(acc)).toBe(true);
+  });
+
+  test('defaults unknown roles to customer', () => {
+    const acc = Account.add({ ...SAMPLE, email: 'bad-role@example.com', role: 'admin' });
+    expect(acc.role).toBe('customer');
+  });
+
+  test('getCustomers excludes staff accounts', () => {
+    Account.add(SAMPLE);
+    Account.add({ ...SAMPLE, email: 'staff@example.com', role: 'staff' });
+    expect(Account.getCustomers()).toHaveLength(1);
+    expect(Account.getCustomers()[0].email).toBe(SAMPLE.email);
+  });
 });
 
 // ── authenticate ─────────────────────────────────────────────
@@ -122,5 +140,11 @@ describe('Account.update()', () => {
 
   test('throws for unknown id', () => {
     expect(() => Account.update(99999, {})).toThrow('Account not found.');
+  });
+
+  test('normalizes updated role', () => {
+    const acc = Account.add(SAMPLE);
+    expect(Account.update(acc.id, { role: 'staff' }).role).toBe('staff');
+    expect(Account.update(acc.id, { role: 'owner' }).role).toBe('customer');
   });
 });
