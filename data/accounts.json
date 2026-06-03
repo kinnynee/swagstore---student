@@ -7,5 +7,15 @@
     "passwordHash": "$2a$10$KoSsxExrFRbE6.L8DerPauwa71JR4KK.ROulwG.z9nRW.BinM3fcm",
     "role": "customer",
     "createdAt": "2026-05-27T08:14:09.544Z"
+  },
+  {
+    "id": 1780470841199,
+    "name": "Staff User",
+    "email": "staff@swagstore.test",
+    "address": "SwagStore Office",
+    "passwordHash": "$2a$10$OVgmaG.q5cUjWVNESKmqTuVadbL7kzwV6kLx1V60frgMWP1OjXkpK",
+    "role": "staff",
+    "createdAt": "2026-06-03T07:14:01.263Z",
+    "updatedAt": "2026-06-03T07:16:03.253Z"
   }
 ]
