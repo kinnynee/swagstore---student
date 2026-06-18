@@ -12,6 +12,7 @@
   </div>
 
   <div class="staff-table">
+    {{#if products.length}}
     {{#each products}}
     <div class="staff-row">
       <div>
@@ -28,5 +29,11 @@
       </div>
     </div>
     {{/each}}
+    {{else}}
+    <div class="empty-state">
+      <h2 class="page-title">No products yet</h2>
+      <p class="page-subtitle">Use New Product to add the first item in the catalog.</p>
+    </div>
+    {{/if}}
   </div>
 </div>
